@@ -125,7 +125,6 @@ header {
     }
 }
 
-/* Затемнение фона при открытом меню */
 .overlay {
     position: fixed;
     top: 0;
