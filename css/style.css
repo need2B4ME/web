@@ -6,15 +6,15 @@
 }
 
 body {
-    background-color: #000000;
-    color: #fff; 
-    font-weight: 400; 
+    background-color: #000000; /* Черный фон */
+    color: #fff; /* Белый текст */
+    font-weight: 400; /* Regular */
     text-align: center;
     display: flex;
     flex-direction: column;
     justify-content: center;
     height: 100vh;
-    overflow: hidden; 
+    overflow: hidden; /* Запрещает прокрутку страницы */
     transition: background 0.3s ease, color 0.3s ease;
 }
 
@@ -28,25 +28,26 @@ header {
     align-items: center;
     padding: 20px;
     background: rgba(255, 255, 255, 0.075);
-    backdrop-filter: blur(30px); 
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /
+    backdrop-filter: blur(30px); /* Увеличена сила блюра в шапке */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Тень для шапки */
     transition: background 0.3s ease, box-shadow 0.3s ease;
-    z-index: 1; 
+    z-index: 1; /* Шапка на заднем плане */
 }
 
 .logo {
     font-size: 20px;
-    font-weight: 600; 
-    color: #fff; 
+    font-weight: 600; /* Semi-bold */
+    color: #fff; /* Белый цвет для текста логотипа */
+}
 
 .menu-btn {
     border: none;
     background: none;
     font-size: 16px;
-    font-weight: 400;
+    font-weight: 400; /* Regular */
     cursor: pointer;
     transition: 0.3s;
-    color: #fff;
+    color: #fff; /* Белый цвет для кнопки */
 }
 
 .menu {
@@ -55,16 +56,16 @@ header {
     right: -100%;
     width: 250px;
     height: 100%;
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(50px);
-    box-shadow: -5px 0 10px rgba(0, 0, 0, 0.1);
-    border-left: 1px solid rgba(255, 255, 255, 0.1);
-    transition: right 0.4s ease-in-out;
+    background: rgba(255, 255, 255, 0.05); /* Менее прозрачный белый фон для меню */
+    backdrop-filter: blur(50px); /* Увеличена сила блюра для фона меню */
+    box-shadow: -5px 0 10px rgba(0, 0, 0, 0.1); /* Тень для меню */
+    border-left: 1px solid rgba(255, 255, 255, 0.1); /* Светлая граница слева */
+    transition: right 0.4s ease-in-out; /* Плавное открытие меню */
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    z-index: 2;
+    z-index: 2; /* Меню будет перед шапкой */
 }
 
 .menu.open {
@@ -99,16 +100,17 @@ header {
 .menu ul li a {
     text-decoration: none;
     font-size: 18px;
-    font-weight: 400;
-    color: #FFF;
+    font-weight: 400; /* Regular */
+    color: #FFF; /* Цвет текста в меню */
     transition: 0.3s;
 }
 
+/* Анимация для заголовка */
 .title {
     font-size: 32px;
     font-weight: 600;
-    color: #fff;
-    animation: glow 8s ease-in-out infinite;
+    color: #fff; /* Белый текст для заголовка */
+    animation: glow 8s ease-in-out infinite; /* Медленная анимация для свечения */
 }
 
 @keyframes glow {
@@ -123,6 +125,7 @@ header {
     }
 }
 
+/* Затемнение фона при открытом меню */
 .overlay {
     position: fixed;
     top: 0;
