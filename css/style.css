@@ -6,15 +6,14 @@
 }
 
 body {
-    background-color: #000000; /* Черный фон */
-    color: #fff; /* Белый текст */
-    font-weight: 400; /* Regular */
+    background-color: #000;
+    color: #fff;
     text-align: center;
     display: flex;
     flex-direction: column;
     justify-content: center;
     height: 100vh;
-    overflow: hidden; /* Запрещает прокрутку страницы */
+    overflow: hidden;
     transition: background 0.3s ease, color 0.3s ease;
 }
 
@@ -28,55 +27,57 @@ header {
     align-items: center;
     padding: 20px;
     background: rgba(255, 255, 255, 0.075);
-    backdrop-filter: blur(30px); /* Увеличена сила блюра в шапке */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Тень для шапки */
+    backdrop-filter: blur(30px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     transition: background 0.3s ease, box-shadow 0.3s ease;
-    z-index: 1; /* Шапка на заднем плане */
+    z-index: 2;
 }
 
 .logo {
     font-size: 20px;
-    font-weight: 600; /* Semi-bold */
-    color: #fff; /* Белый цвет для текста логотипа */
+    font-weight: 600;
+    color: #fff;
 }
 
 .menu-btn {
     border: none;
     background: none;
     font-size: 16px;
-    font-weight: 400; /* Regular */
     cursor: pointer;
+    color: #fff;
     transition: 0.3s;
-    color: #fff; /* Белый цвет для кнопки */
 }
 
+/* МЕНЮ С ПЛАВНОЙ АНИМАЦИЕЙ */
 .menu {
     position: fixed;
     top: 0;
-    right: -100%;
-    width: 250px;
+    left: 0;
+    width: 100%;
     height: 100%;
-    background: rgba(155, 155, 155, 0.1); /* Менее прозрачный белый фон для меню */
-    backdrop-filter: blur(50px); /* Увеличена сила блюра для фона меню */
-    box-shadow: -5px 0 10px rgba(0, 0, 0, 0.1); /* Тень для меню */
-    border-left: 1px solid rgba(255, 255, 255, 0.1); /* Светлая граница слева */
-    transition: right 0.4s ease-in-out; /* Плавное открытие меню */
+    background: rgba(20, 20, 20, 0.95);
+    backdrop-filter: blur(20px);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    z-index: 2; /* Меню будет перед шапкой */
+    z-index: 10;
+
+    transform: translateY(-100%) scale(0.95);
+    opacity: 0;
+    transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
 }
 
 .menu.open {
-    right: 0;
+    transform: translateY(0) scale(1);
+    opacity: 1;
 }
 
 .close-btn {
     position: absolute;
-    top: 15px;
-    right: 15px;
-    font-size: 24px;
+    top: 20px;
+    right: 20px;
+    font-size: 32px;
     border: none;
     background: none;
     color: #AAA;
@@ -85,12 +86,13 @@ header {
 }
 
 .close-btn:hover {
-    opacity: 0.7;
+    color: #FFF;
 }
 
 .menu ul {
     list-style: none;
     padding: 0;
+    text-align: center;
 }
 
 .menu ul li {
@@ -99,30 +101,14 @@ header {
 
 .menu ul li a {
     text-decoration: none;
-    font-size: 18px;
-    font-weight: 400; /* Regular */
-    color: #FFF; /* Цвет текста в меню */
+    font-size: 24px;
+    font-weight: 500;
+    color: #FFF;
     transition: 0.3s;
 }
 
-/* Анимация для заголовка */
-.title {
-    font-size: 32px;
-    font-weight: 600;
-    color: #fff; /* Белый текст для заголовка */
-    animation: glow 8s ease-in-out infinite; /* Медленная анимация для свечения */
-}
-
-@keyframes glow {
-    0% {
-        text-shadow: 0 0 15px rgba(200, 200, 200, 0.8), 0 0 20px rgba(200, 200, 200, 0.8);
-    }
-    50% {
-        text-shadow: 0 0 50px rgba(200, 200, 200, 1), 0 0 60px rgba(200, 200, 200, 1);
-    }
-    100% {
-        text-shadow: 0 0 15px rgba(200, 200, 200, 0.8), 0 0 20px rgba(200, 200, 200, 0.8);
-    }
+.menu ul li a:hover {
+    color: #FF4081;
 }
 
 /* Затемнение фона при открытом меню */
@@ -139,7 +125,8 @@ header {
 }
 
 .overlay.active {
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(5px);
     visibility: visible;
 }
+
