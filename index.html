@@ -1,34 +1,685 @@
-<!DOCTYPE html>
-<html lang="ru">
+<!DOCTYPE html> <!-- Объявление типа документа HTML5 -->
+<html lang="ru"> <!-- Начало HTML-документа, язык русский -->
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Psycholearning.</title>
-    <link rel="icon" href="img/logo.png" type="image/png">
-    <link rel="stylesheet" href="css/style.css">
-    <script defer src="js/script.js"></script>
+  <meta charset="UTF-8" /> <!-- Установка кодировки UTF-8 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <!-- Настройка области просмотра -->
+  <title>Калькулятор</title> <!-- Заголовок вкладки -->
+  <style>
+    /* CSS (Каскадные таблицы стилей) */
+
+    :root {
+      /* CSS переменные */
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; /* Системный шрифт */
+      --radius: 50%; /* Радиус для круглых кнопок */
+      --button-size: 65px; /* Базовый размер кнопки (используется для расчета радиуса 0) */
+      --gap-size: 12px; /* Отступ между кнопками */
+      --modal-z-index: 1000; /* z-index для модального окна */
+    }
+
+    html, body {
+      /* Стили для html и body */
+      margin: 0; /* Убираем отступы */
+      padding: 0; /* Убираем поля */
+      background: #000; /* Черный фон */
+      color: white; /* Белый текст */
+      height: 100vh; /* Высота 100% */
+      width: 100vw; /* Ширина 100% */
+      overflow: hidden; /* Скрываем скроллбары */
+    }
+
+    body {
+      /* Центрирование калькулятора */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .calculator {
+      /* Стили контейнера калькулятора */
+      background: rgba(20, 20, 20, 0.98);
+      border-radius: 20px;
+      width: 100vw;
+      max-width: 400px;
+      height: auto;
+      max-height: 95vh;
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem 1rem;
+      box-sizing: border-box;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    .calculator::before {
+       /* Псевдоэлемент для текстуры */
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='1' cy='1' r='1' fill='rgba(255,255,255,0.02)'/%3E%3C/svg%3E");
+      opacity: 0.5;
+      pointer-events: none;
+      border-radius: inherit;
+    }
+
+    .display {
+      /* Стили дисплея калькулятора */
+      z-index: 1;
+      padding: 1rem 0.75rem;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 10px;
+      font-size: 2.5rem;
+      text-align: right;
+      font-weight: 300;
+      margin-bottom: 1.5rem;
+      min-height: 3.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      word-break: break-all;
+      overflow-wrap: break-word;
+      color: white;
+    }
+
+    .buttons {
+       /* Стили контейнера кнопок */
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr); /* 4 колонки */
+      gap: var(--gap-size); /* Отступ между кнопками */
+      padding-bottom: 0.5rem;
+      /* Ряды создаются автоматически */
+    }
+
+    button {
+      /* Основные стили кнопок */
+      font-size: 1.5rem;
+      font-weight: 500;
+      border: none;
+      border-radius: var(--radius); /* Круглые кнопки */
+      background: #333; /* Темно-серый фон */
+      color: white;
+      width: 100%;
+      aspect-ratio: 1 / 1; /* Соотношение 1:1 */
+      height: auto;
+      min-height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: manipulation;
+      transition: background 0.1s ease, transform 0.05s ease;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:active {
+       /* Стиль при нажатии */
+      background: #555;
+      transform: scale(0.95);
+    }
+
+    /* Стили для кнопок-операторов */
+    button[data-action="operator"] {
+      background: #f39c12; /* Оранжевый */
+      color: white;
+      font-size: 1.8rem;
+    }
+    button[data-action="operator"]:active { background: #e67e22; }
+
+    /* Стили для кнопки очистки (C) */
+    button[data-action="clear"] {
+      background: #e74c3c; /* Красный */
+      color: white;
+    }
+     button[data-action="clear"]:active { background: #c0392b; }
+
+    /* Стили для кнопки (=) */
+    button[data-action="calculate"] {
+      background: #2ecc71; /* Зеленый */
+      color: white;
+      font-size: 1.8rem;
+    }
+     button[data-action="calculate"]:active { background: #27ae60; }
+
+     /* Стили для кнопки 0 */
+    button[data-value="0"] {
+        grid-column: span 2; /* Занимает 2 колонки */
+        border-radius: calc(var(--button-size, 65px) / 2); /* Овальная форма */
+        width: auto;
+        aspect-ratio: unset; /* Убираем фикс. соотношение */
+    }
+
+    /* Стили для "серых" функциональных кнопок */
+    button[data-action="toggleSign"],
+    button[data-action="percent"],
+    button[data-action="decimal"],
+    button[data-action="square"],
+    button[data-action="sqrt"],
+    button[data-action="reciprocal"],
+    button[data-action="convert"] { /* Добавлена кнопка конвертации */
+       background: #a0a0a0; /* Светло-серый */
+       color: #1c1c1c; /* Темный текст */
+       font-weight: 400;
+    }
+     button[data-action="toggleSign"]:active,
+     button[data-action="percent"]:active,
+     button[data-action="decimal"]:active,
+     button[data-action="square"]:active,
+     button[data-action="sqrt"]:active,
+     button[data-action="reciprocal"]:active,
+     button[data-action="convert"]:active { /* Добавлена кнопка конвертации */
+        background: #bdbdbd; /* Светлее при нажатии */
+     }
+
+    /* --- Стили для Модального Окна --- */
+    .modal {
+      display: none; /* Изначально скрыто */
+      position: fixed; /* Фиксированное позиционирование поверх всего */
+      z-index: var(--modal-z-index); /* Выше остального контента */
+      left: 0;
+      top: 0;
+      width: 100%; /* На весь экран */
+      height: 100%; /* На весь экран */
+      overflow: auto; /* Добавляем скролл, если контент не помещается */
+      background-color: rgba(0, 0, 0, 0.7); /* Полупрозрачный черный фон */
+      /* Используем flex для центрирования содержимого окна */
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.show {
+      display: flex; /* Показываем окно, используя flex */
+    }
+
+    .modal-content {
+      background-color: #2c2c2c; /* Темно-серый фон окна */
+      color: white; /* Белый текст */
+      margin: auto; /* Автоматические отступы для центрирования */
+      padding: 25px; /* Внутренние отступы */
+      border: 1px solid #555; /* Небольшая рамка */
+      border-radius: 10px; /* Скругление углов */
+      width: 80%; /* Ширина окна */
+      max-width: 450px; /* Максимальная ширина */
+      position: relative; /* Для позиционирования кнопки закрытия */
+      box-shadow: 0 5px 15px rgba(0,0,0,0.5); /* Тень */
+    }
+
+    .close-modal {
+      /* Стили для кнопки закрытия 'X' */
+      color: #aaa;
+      position: absolute; /* Абсолютное позиционирование */
+      top: 0px; /* Отступ сверху */
+      right: 0px; /* Отступ справа */
+      font-size: 28px; /* Размер символа */
+      font-weight: bold;
+      background: none; /* Без фона */
+      border: none; /* Без рамки */
+      cursor: pointer; /* Курсор-рука */
+      padding: 0;
+      height: 20px;
+      width: 20px;
+      line-height: 1; /* Убираем лишнюю высоту строки */
+    }
+
+    .close-modal:hover,
+    .close-modal:focus {
+      color: white; /* Белый при наведении/фокусе */
+      text-decoration: none;
+    }
+
+    /* Стили для элементов формы внутри модального окна */
+    .modal-content h3 {
+      margin-top: 0; /* Убираем верхний отступ у заголовка */
+      text-align: center; /* Центрируем заголовок */
+      margin-bottom: 20px;
+    }
+
+    .modal-content label {
+      display: block; /* Метка на своей строке */
+      margin-bottom: 5px; /* Отступ снизу */
+      font-size: 0.9rem;
+      color: #ccc;
+    }
+
+    .modal-content input[type="number"],
+    .modal-content select {
+      width: 100%; /* На всю ширину контейнера */
+      padding: 10px; /* Внутренние отступы */
+      margin-bottom: 15px; /* Отступ снизу */
+      border: 1px solid #555; /* Рамка */
+      border-radius: 5px; /* Скругление */
+      background-color: #444; /* Фон поля */
+      color: white; /* Цвет текста */
+      box-sizing: border-box; /* Учитываем padding и border в ширине */
+      font-size: 1rem;
+    }
+     /* Убираем стрелочки у input number в Chrome/Safari/Edge/Opera */
+    .modal-content input::-webkit-outer-spin-button,
+    .modal-content input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    /* Убираем стрелочки у input number в Firefox */
+    .modal-content input[type=number] {
+        -moz-appearance: textfield;
+    }
+
+    .modal-content select {
+       cursor: pointer;
+    }
+
+    .modal-content button#modal-convert-button {
+      /* Стили для кнопки "Конвертировать" */
+      background-color: #f39c12; /* Оранжевый */
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%; /* На всю ширину */
+      font-size: 1rem;
+      transition: background-color 0.2s ease;
+      margin-top: 10px; /* Отступ сверху */
+    }
+
+    .modal-content button#modal-convert-button:hover {
+      background-color: #e67e22; /* Темнее при наведении */
+    }
+
+    #modal-result {
+      /* Стили для области вывода результата */
+      margin-top: 20px; /* Отступ сверху */
+      padding: 10px;
+      background-color: rgba(0, 0, 0, 0.3); /* Темный фон */
+      border-radius: 5px;
+      min-height: 1.5em; /* Минимальная высота */
+      font-size: 0.95rem;
+      word-wrap: break-word; /* Перенос длинных строк результата */
+      line-height: 1.4;
+    }
+    /* ------------------------------------ */
+
+
+    @media (max-width: 480px) {
+       /* Медиа-запросы для мобильных */
+        .calculator {
+            /* Стили калькулятора на мобильных */
+            max-width: 100vw;
+            max-height: 100vh;
+            height: 100vh;
+            border-radius: 0;
+            padding: 0.5rem;
+        }
+        .calculator::before { border-radius: 0; }
+
+        button {
+            /* Стили кнопок на мобильных */
+            min-height: 55px;
+            font-size: 1.4rem;
+             /* --button-size: 55px; Переопределяем переменную */
+        }
+        .display {
+             /* Стили дисплея на мобильных */
+            font-size: 2.2rem;
+            min-height: 3rem;
+            padding: 0.75rem 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .buttons {
+             /* Стили сетки кнопок на мобильных */
+            gap: 8px;
+            padding: 0.5rem 0;
+            grid-auto-rows: minmax(var(--button-size, 55px), auto);
+        }
+         /* Переопределяем радиус кнопки 0 для мобильных */
+         button[data-value="0"] {
+             border-radius: calc(var(--button-size, 55px) / 2);
+        }
+
+        /* Адаптация модального окна */
+         .modal-content {
+            width: 90%; /* Шире на маленьких экранах */
+            padding: 20px;
+         }
+         .modal-content h3 { font-size: 1.2rem;}
+         .modal-content input[type="number"],
+         .modal-content select,
+         .modal-content button#modal-convert-button { font-size: 0.9rem;}
+    }
+  </style>
 </head>
-<body>
-    <div class="overlay"></div>
+<body> <!-- Начало видимой части страницы -->
+  <div class="calculator"> <!-- Основной контейнер калькулятора -->
+    <div class="display" id="display">0</div> <!-- Дисплей калькулятора -->
+    <div class="buttons"> <!-- Контейнер кнопок -->
+      <!-- Ряд 1: Функции -->
+      <button data-action="square">x²</button>
+      <button data-action="sqrt">√x</button>
+      <button data-action="reciprocal">1/x</button>
+      <button data-action="convert">↔</button> <!-- Кнопка конвертации -->
 
-    <header>
-        <div class="logo">Psycholearning.</div>
-        <button class="menu-btn">•••</button>
-    </header>
+      <!-- Ряд 2: Очистка и основные операции -->
+      <button data-action="clear">C</button>
+      <button data-action="toggleSign">±</button>
+      <button data-action="percent">%</button>    <!-- Перенес % сюда для симметрии -->
+      <button data-action="operator" data-value="/">÷</button>
 
-    <nav class="menu">
-        <button class="close-btn">&times;</button>
-        <ul>
-            <li><a href="#">О проекте</a></li>
-            <li><a href="#">Статьи</a></li>
-            <li><a href="#">Контакты</a></li>
-            <li><a href="#">Обновления</a></li>
-        </ul>
-    </nav>
+      <!-- Ряд 3: Цифры 7-9 и умножение -->
+      <button data-action="number" data-value="7">7</button>
+      <button data-action="number" data-value="8">8</button>
+      <button data-action="number" data-value="9">9</button>
+      <button data-action="operator" data-value="*">×</button>
 
-    <main>
-        <h1 class="title">Осознай. Принимай. Развивайся.</h1>
-        <p>Документация о ментальных расстройствах.</p>
-    </main>
-</body>
-</html>
+      <!-- Ряд 4: Цифры 4-6 и вычитание -->
+      <button data-action="number" data-value="4">4</button>
+      <button data-action="number" data-value="5">5</button>
+      <button data-action="number" data-value="6">6</button>
+      <button data-action="operator" data-value="-">−</button>
+
+      <!-- Ряд 5: Цифры 1-3 и сложение -->
+      <button data-action="number" data-value="1">1</button>
+      <button data-action="number" data-value="2">2</button>
+      <button data-action="number" data-value="3">3</button>
+      <button data-action="operator" data-value="+">+</button>
+
+      <!-- Ряд 6: 0, точка и равно -->
+      <button data-action="number" data-value="0">0</button>
+      <button data-action="decimal" data-value=".">.</button>
+      <button data-action="calculate">=</button>
+    </div> <!-- Конец контейнера кнопок -->
+  </div> <!-- Конец контейнера калькулятора -->
+
+  <!-- HTML структура для модального окна конвертера -->
+  <div id="conversion-modal" class="modal"> <!-- Контейнер модального окна -->
+    <div class="modal-content"> <!-- Содержимое окна -->
+      <button class="close-modal" id="close-modal-button">×</button> <!-- Кнопка закрытия 'X' -->
+      <h3>Конвертер Единиц</h3> <!-- Заголовок окна -->
+
+      <label for="modal-input-value">Значение:</label> <!-- Метка для поля ввода -->
+      <input type="number" id="modal-input-value" placeholder="Введите число"> <!-- Поле для ввода числа -->
+
+      <label for="modal-conversion-type">Тип конвертации:</label> <!-- Метка для выбора типа -->
+      <select id="modal-conversion-type"> <!-- Выпадающий список -->
+        <option value="length">Длина (м → см, дюйм)</option> <!-- Опция: Длина -->
+        <option value="volume">Объем (л → мл, чашки)</option> <!-- Опция: Объем -->
+        <option value="info">Информация (байт → КБ, МБ)</option> <!-- Опция: Информация -->
+        <option value="temperature">Температура (°C → °F)</option> <!-- Опция: Температура -->
+      </select>
+
+      <button id="modal-convert-button">Конвертировать</button> <!-- Кнопка для запуска конвертации -->
+
+      <p id="modal-result">Результат:</p> <!-- Область для отображения результата -->
+    </div>
+  </div>
+
+  <script>
+    // === JavaScript для Калькулятора ===
+
+    // Получаем ссылки на DOM-элементы калькулятора
+    const calculator = document.querySelector('.calculator');
+    const display = document.getElementById('display');
+    const buttons = calculator.querySelector('.buttons');
+
+    // Переменные состояния калькулятора
+    let currentOperand = '0';
+    let previousOperand = null;
+    let operation = null;
+    let shouldResetDisplay = false;
+
+    // Обработчик кликов по кнопкам калькулятора (делегирование)
+    buttons.addEventListener('click', (event) => {
+      if (!event.target.matches('button')) return; // Игнорируем клики не по кнопкам
+
+      const button = event.target;
+      const action = button.dataset.action;
+      const value = button.dataset.value;
+
+      handleAction(action, value); // Вызов обработчика действия
+      // Обновление дисплея калькулятора происходит внутри некоторых handleAction функций или в конце, если нужно
+       if (action !== 'convert') { // Не обновляем дисплей сразу после открытия модалки
+           updateDisplay();
+       }
+    });
+
+    // Основной маршрутизатор действий калькулятора
+    function handleAction(action, value) {
+      switch (action) {
+        // ... (кейсы для number, decimal, operator, calculate, clear, toggleSign, percent, square, sqrt, reciprocal - без изменений) ...
+        case 'number':      appendNumber(value); break;
+        case 'decimal':     appendDecimal();   break;
+        case 'operator':    chooseOperation(value); break;
+        case 'calculate':   compute(action); break;
+        case 'clear':       clear();         break;
+        case 'toggleSign':  toggleSign();    break;
+        case 'percent':     calculatePercent(); break;
+        case 'square':      calculateSquare(); break;
+        case 'sqrt':        calculateSqrt(); break;
+        case 'reciprocal':  calculateReciprocal(); break;
+        // --- Новый кейс для кнопки конвертации ---
+        case 'convert':
+          showConversionModal(); // Вызываем функцию показа модального окна
+          break;
+        // ----------------------------------------
+        default:
+          console.log('Unknown calculator action:', action);
+      }
+    }
+
+    // --- Функции калькулятора (без изменений) ---
+    // updateDisplay, appendNumber, appendDecimal, chooseOperation, compute,
+    // clear, toggleSign, calculatePercent, calculateSquare, calculateSqrt,
+    // calculateReciprocal, formatResult
+     function updateDisplay() {
+        const maxLength = 12; let displayValue = currentOperand;
+        if (typeof displayValue !== 'string') { displayValue = String(displayValue); }
+        if (displayValue.includes("Ошибка") || displayValue.includes("!") || displayValue.toLowerCase().includes("infinity") || displayValue.toLowerCase().includes("nan")) {}
+        else if (displayValue.length > maxLength && !isNaN(parseFloat(displayValue))) {
+            const number = parseFloat(displayValue);
+            if (Math.abs(number) >= 1e12 || (Math.abs(number) < 1e-6 && number !== 0)) { displayValue = number.toExponential(maxLength - 6); }
+            else if (displayValue.includes('.')) {
+                 const integerPartLength = displayValue.split('.')[0].length;
+                 const allowedDecimalPlaces = Math.max(0, maxLength - integerPartLength - 1);
+                 displayValue = number.toFixed(allowedDecimalPlaces);
+                 displayValue = parseFloat(displayValue).toString();
+            } else { displayValue = number.toExponential(maxLength - 6); }
+        }
+       display.innerText = displayValue;
+    }
+     function appendNumber(number) {
+       if (currentOperand.includes("Ошибка") || currentOperand.includes("!") || currentOperand.toLowerCase().includes("infinity")|| currentOperand.toLowerCase().includes("nan")) { currentOperand = number; shouldResetDisplay = false; return; }
+       if (currentOperand === '0' || shouldResetDisplay) { currentOperand = number; shouldResetDisplay = false; }
+       else { if (currentOperand.length >= 16) return; currentOperand += number; }
+    }
+    function appendDecimal() {
+        if (currentOperand.includes("Ошибка") || currentOperand.includes("!")) return;
+        if (shouldResetDisplay) { currentOperand = '0.'; shouldResetDisplay = false; return; }
+        if (currentOperand.includes('.')) return;
+        if (currentOperand === '') { currentOperand = '0.'; return; }
+        currentOperand += '.';
+    }
+    function chooseOperation(selectedOperation) {
+      if (currentOperand.includes("Ошибка") || currentOperand.includes("!")) return;
+      if (currentOperand === '' && previousOperand === null) return;
+      if (currentOperand === '' && previousOperand !== null) { operation = selectedOperation; return; }
+      if (previousOperand !== null && operation !== null) {
+        compute();
+        if (currentOperand.includes("Ошибка") || currentOperand.includes("!")) return;
+      }
+      operation = selectedOperation;
+      previousOperand = currentOperand;
+      currentOperand = '';
+      shouldResetDisplay = false;
+    }
+    function compute(action = null) {
+      let result;
+      const prev = parseFloat(previousOperand);
+      let current = parseFloat(currentOperand); // Используем let, т.к. можем переопределить для повтора операции
+      // Логика повтора последней операции при нажатии '=' (если нужно)
+      // if (action === 'calculate' && operation === null && previousOperand !== null && lastOperation && lastOperandForRepeat) {
+      //    operation = lastOperation;
+      //    current = lastOperandForRepeat;
+      //    previousOperand = currentOperand; // Результат предыдущего вычисления становится первым операндом
+      //    prev = parseFloat(previousOperand); // Обновляем prev
+      //} else
+      if (operation === null || previousOperand === null || currentOperand === '') { return; }
+
+      // Сохраняем для возможного повтора операции по =
+      // lastOperation = operation;
+      // lastOperandForRepeat = current;
+
+      if (isNaN(prev) || isNaN(current)) {
+          console.error("Invalid operands for computation:", previousOperand, currentOperand);
+          clear(); currentOperand = "Ошибка ввода"; shouldResetDisplay = true; return;
+      }
+      switch (operation) {
+        case '+': result = prev + current; break;
+        case '-': result = prev - current; break;
+        case '*': result = prev * current; break;
+        case '/':
+          if (current === 0) { clear(); currentOperand = 'Деление на 0!'; shouldResetDisplay = true; return; }
+          result = prev / current; break;
+        default: console.error("Unknown operation during compute:", operation); return;
+      }
+      currentOperand = formatResult(result);
+      operation = null;
+      previousOperand = null; // Сбрасываем после вычисления
+      shouldResetDisplay = true;
+    }
+    function clear() {
+      currentOperand = '0'; previousOperand = null; operation = null; shouldResetDisplay = false;
+      // Сброс переменных для повтора операции
+      // lastOperation = null; lastOperandForRepeat = null;
+    }
+    function toggleSign() {
+      if (currentOperand === '0' || currentOperand === '' || currentOperand.includes("Ошибка") || currentOperand.includes("!")) return;
+      currentOperand = (parseFloat(currentOperand) * -1).toString();
+    }
+    function calculatePercent() {
+        if (currentOperand === '' || currentOperand.includes("Ошибка") || currentOperand.includes("!")) return;
+        const current = parseFloat(currentOperand); if (isNaN(current)) return;
+        if (previousOperand !== null && operation !== null) {
+             const prev = parseFloat(previousOperand); if (isNaN(prev)) return;
+             let percentageValue = (prev * current) / 100;
+             currentOperand = formatResult(percentageValue);
+        } else { currentOperand = formatResult(current / 100); }
+        shouldResetDisplay = true;
+    }
+    function calculateSquare() {
+        if (currentOperand.includes("Ошибка") || currentOperand.includes("!")) return;
+        const num = parseFloat(currentOperand); if (isNaN(num)) return;
+        currentOperand = formatResult(Math.pow(num, 2));
+        operation = null; previousOperand = null; shouldResetDisplay = true;
+    }
+    function calculateSqrt() {
+        if (currentOperand.includes("Ошибка") || currentOperand.includes("!")) return;
+        const num = parseFloat(currentOperand); if (isNaN(num)) return;
+        if (num < 0) { clear(); currentOperand = '√ от отриц.!'; shouldResetDisplay = true; return; }
+        currentOperand = formatResult(Math.sqrt(num));
+         operation = null; previousOperand = null; shouldResetDisplay = true;
+    }
+    function calculateReciprocal() {
+        if (currentOperand.includes("Ошибка") || currentOperand.includes("!")) return;
+        const num = parseFloat(currentOperand); if (isNaN(num)) return;
+        if (num === 0) { clear(); currentOperand = 'Деление на 0!'; shouldResetDisplay = true; return; }
+        currentOperand = formatResult(1 / num);
+         operation = null; previousOperand = null; shouldResetDisplay = true;
+    }
+    function formatResult(number) {
+        if (!isFinite(number) || isNaN(number)) {
+             clear();
+             if (isNaN(number)) return "Результат NaN";
+             return number > 0 ? "Infinity" : "-Infinity";
+        }
+        const precision = 12;
+        let resultString = parseFloat(number.toPrecision(precision)).toString();
+        return resultString;
+    }
+    // -------------------------------------------
+
+    // === JavaScript для Модального Окна Конвертера ===
+
+    // Получаем ссылки на DOM-элементы модального окна
+    const conversionModal = document.getElementById('conversion-modal'); // Само окно
+    const closeModalButton = document.getElementById('close-modal-button'); // Кнопка 'X'
+    const modalInputValue = document.getElementById('modal-input-value'); // Поле ввода значения
+    const modalConversionType = document.getElementById('modal-conversion-type'); // Выпадающий список типов
+    const modalConvertButton = document.getElementById('modal-convert-button'); // Кнопка "Конвертировать"
+    const modalResultDisplay = document.getElementById('modal-result'); // Область для результата
+
+    // Функция для показа модального окна
+    function showConversionModal() {
+      // Получаем текущее значение с дисплея калькулятора
+      const currentValue = parseFloat(currentOperand);
+      // Если это валидное число (не ошибка и не NaN), подставляем в поле ввода модального окна
+      if (!isNaN(currentValue) && !currentOperand.includes("Ошибка") && !currentOperand.includes("!")) {
+        modalInputValue.value = currentValue;
+      } else {
+        modalInputValue.value = ''; // Очищаем поле, если на дисплее не число
+      }
+      // Очищаем предыдущий результат конвертации
+      modalResultDisplay.innerText = 'Результат:';
+      // Показываем модальное окно, добавляя класс 'show'
+      conversionModal.classList.add('show');
+    }
+
+    // Функция для скрытия модального окна
+    function hideConversionModal() {
+      // Скрываем окно, удаляя класс 'show'
+      conversionModal.classList.remove('show');
+    }
+
+    // Обработчик для кнопки "Конвертировать" внутри модального окна
+    modalConvertButton.addEventListener('click', () => {
+      // Получаем значение из поля ввода модального окна
+      const valueStr = modalInputValue.value;
+      // Получаем выбранный тип конвертации
+      const type = modalConversionType.value;
+      // Преобразуем введенное значение в число
+      const value = parseFloat(valueStr);
+
+      let resultText = 'Результат: '; // Начало строки результата
+
+      // Проверяем, является ли введенное значение числом
+      if (isNaN(value)) {
+        resultText += 'Ошибка! Введите число.';
+      } else {
+        // Выполняем конвертацию в зависимости от выбранного типа
+        switch (type) {
+          case 'length': // Длина
+            resultText += `${value} м = ${value * 100} см = ${(value * 39.3701).toFixed(2)} дюйм`;
+            break;
+          case 'volume': // Объем
+             // 1 чашка (US cup) ≈ 0.24 литра => 1 литр ≈ 1 / 0.24 ≈ 4.167 чашки
+            resultText += `${value} л = ${value * 1000} мл = ${(value * 4.16667).toFixed(2)} чашки (US)`;
+            break;
+          case 'info': // Информация
+            resultText += `${value} байт = ${(value / 1024).toFixed(3)} КБ = ${(value / (1024 ** 2)).toFixed(5)} МБ`;
+            break;
+          case 'temperature': // Температура
+            resultText += `${value} °C = ${(value * 9/5 + 32).toFixed(1)} °F`;
+            break;
+          default: // Неизвестный тип (не должно произойти с <select>)
+            resultText += 'Неизвестный тип конвертации.';
+        }
+      }
+
+      // Отображаем результат конвертации в модальном окне
+      modalResultDisplay.innerText = resultText;
+    });
+
+    // Обработчик для кнопки закрытия 'X'
+    closeModalButton.addEventListener('click', hideConversionModal);
+
+    // Обработчик для закрытия модального окна по клику на фон (вне .modal-content)
+    conversionModal.addEventListener('click', (event) => {
+      // Если клик произошел непосредственно по фону модального окна (.modal)
+      if (event.target === conversionModal) {
+        hideConversionModal(); // Закрываем окно
+      }
+    });
+
+    // Инициализация дисплея калькулятора при загрузке
+    updateDisplay();
+
+  </script> <!-- Конец блока JavaScript -->
+</body> <!-- Конец видимой части страницы -->
+</html> <!-- Конец HTML-документа -->
